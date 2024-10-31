@@ -20,214 +20,151 @@ func main() {
 		return
 	}
 
-	filename := os.Args[1]
-	file, err := os.Open(filename)
+	numAnts, rooms, connections, err := parseInput(os.Args[1])
 	if err != nil {
-		fmt.Printf("Error: could not open file %s\n", filename)
-		return
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	numAnts, rooms, connections, err := parseInput(scanner)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Println("Error:", err)
 		return
 	}
 
 	fmt.Printf("Number of ants: %d\n", numAnts)
-
-	fmt.Println("Rooms:")
-	for _, room := range rooms {
-		status := ""
-		if room.IsStart {
-			status = "(Start)"
-		} else if room.IsEnd {
-			status = "(End)"
-		}
-		fmt.Printf("Room: %s %s\n", room.Name, status)
+	for name, room := range rooms {
+		fmt.Printf("Room: %s %s\n", name, roomStatus(room))
 	}
-
-	fmt.Println("Rooms and their connections:")
 	for room, links := range connections {
 		fmt.Printf("Room %s: %v\n", room, links)
 	}
 
-	allPaths, err := findAllPaths(rooms, connections)
+	paths, err := findUniquePaths(rooms, connections)
 	if err != nil {
-		fmt.Printf("Error finding paths: %v\n", err)
-	} else {
-		fmt.Println("All paths from start to end:")
-		for _, path := range allPaths {
-			fmt.Println(path)
-		}
+		fmt.Println("Error finding paths:", err)
+		return
 	}
 
-	// Further logic for ant movement goes here...
-}
-
-func parseRoom(line string, isStart bool, isEnd bool) (*Room, error) {
-	parts := strings.Split(line, " ")
-	if len(parts) < 1 {
-		return nil, fmt.Errorf("invalid room format: %s", line)
+	fmt.Println("All unique paths from start to end:")
+	for _, path := range paths {
+		fmt.Println(path)
 	}
-
-	return &Room{
-		Name:    parts[0],
-		IsStart: isStart,
-		IsEnd:   isEnd,
-	}, nil
 }
 
-func parseInput(scanner *bufio.Scanner) (int, map[string]*Room, map[string][]string, error) {
-	var numAnts int
+func roomStatus(room *Room) string {
+	switch {
+	case room.IsStart:
+		return "(Start)"
+	case room.IsEnd:
+		return "(End)"
+	default:
+		return ""
+	}
+}
+
+func parseInput(filename string) (int, map[string]*Room, map[string][]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("could not open file %s", filename)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
 	rooms := make(map[string]*Room)
 	connections := make(map[string][]string)
-	parsingRooms := true
-	isStart := false
-	isEnd := false
+	var numAnts int
+	parsingRooms, isStart, isEnd := true, false, false
 
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		// Ignore comments
-		if strings.HasPrefix(line, "#") {
-			if line == "##start" {
-				isStart = true
-			} else if line == "##end" {
-				isEnd = true
-			}
-			continue
-		}
-
-		// Parse number of ants
-		if numAnts == 0 {
-			ants, err := strconv.Atoi(line)
+		switch {
+		case strings.HasPrefix(line, "#"):
+			isStart, isEnd = line == "##start", line == "##end"
+		case numAnts == 0:
+			numAnts, err = strconv.Atoi(line)
 			if err != nil {
 				return 0, nil, nil, fmt.Errorf("invalid number of ants: %v", err)
 			}
-			numAnts = ants
-			continue
-		}
-
-		// Parse rooms and tunnels
-		if parsingRooms {
-			if strings.Contains(line, "-") {
-				// Start parsing tunnels
-				parsingRooms = false
-			} else {
-				// Parse room
-				room, err := parseRoom(line, isStart, isEnd)
-				if err != nil {
-					return 0, nil, nil, err
-				}
-				rooms[room.Name] = room
-
-				// Reset start/end flags
-				isStart = false
-				isEnd = false
-				continue
-			}
-		}
-
-		// Parse tunnels
-		if !parsingRooms {
-			err := parseTunnel(line, connections)
-			if err != nil {
-				return 0, nil, nil, err
-			}
+		case parsingRooms && strings.Contains(line, "-"):
+			parsingRooms = false
+			parseTunnel(line, connections)
+		case parsingRooms:
+			room := &Room{Name: strings.Fields(line)[0], IsStart: isStart, IsEnd: isEnd}
+			rooms[room.Name] = room
+			isStart, isEnd = false, false
+		default:
+			parseTunnel(line, connections)
 		}
 	}
 
 	return numAnts, rooms, connections, nil
 }
 
-func parseTunnel(line string, connections map[string][]string) error {
+func parseTunnel(line string, connections map[string][]string) {
 	parts := strings.Split(line, "-")
-	if len(parts) != 2 {
-		return fmt.Errorf("invalid tunnel format: %s", line)
-	}
-
-	room1 := parts[0]
-	room2 := parts[1]
-
-	// Add two-way connections
-	connections[room1] = append(connections[room1], room2)
-	connections[room2] = append(connections[room2], room1)
-
-	return nil
+	connections[parts[0]] = append(connections[parts[0]], parts[1])
+	connections[parts[1]] = append(connections[parts[1]], parts[0])
 }
-func findAllPaths(rooms map[string]*Room, connections map[string][]string) ([][]string, error) {
-	var startRoom, endRoom *Room
 
-	// Locate the start and end rooms
-	for _, room := range rooms {
-		if room.IsStart {
-			startRoom = room
-		} else if room.IsEnd {
-			endRoom = room
-		}
-	}
-
-	if startRoom == nil || endRoom == nil {
+func findUniquePaths(rooms map[string]*Room, connections map[string][]string) ([][]string, error) {
+	start, end := findStartEnd(rooms)
+	if start == "" || end == "" {
 		return nil, fmt.Errorf("start or end room not defined")
 	}
 
-	allPaths := [][]string{}
-	visited := make(map[string]bool)
-
-	// Depth-first search to find all paths
-	var dfs func(current string, path []string)
-	dfs = func(current string, path []string) {
-		path = append(path, current)
-		if current == endRoom.Name {
-			// Found a complete path
-			// Append a copy of the path to allPaths
-			newPath := make([]string, len(path))
-			copy(newPath, path)
-			allPaths = append(allPaths, newPath)
+	var paths [][]string
+	visited := map[string]bool{}
+	var dfs func(path []string)
+	dfs = func(path []string) {
+		room := path[len(path)-1]
+		if room == end {
+			paths = append(paths, append([]string{}, path...))
 			return
 		}
-
-		visited[current] = true
-		for _, neighbor := range connections[current] {
+		visited[room] = true
+		for _, neighbor := range connections[room] {
 			if !visited[neighbor] {
-				dfs(neighbor, path)
+				dfs(append(path, neighbor))
 			}
 		}
-		visited[current] = false
+		visited[room] = false
 	}
+	dfs([]string{start})
+	return filterUniquePaths(paths), nil
+}
 
-	dfs(startRoom.Name, []string{})
+func findStartEnd(rooms map[string]*Room) (string, string) {
+	var start, end string
+	for name, room := range rooms {
+		if room.IsStart {
+			start = name
+		} else if room.IsEnd {
+			end = name
+		}
+	}
+	return start, end
+}
 
-	// Determine the shortest path length
-	shortestLength := len(allPaths[0])
-	for _, path := range allPaths {
+func filterUniquePaths(paths [][]string) [][]string {
+	shortestLength := len(paths[0])
+	for _, path := range paths {
 		if len(path) < shortestLength {
 			shortestLength = len(path)
 		}
 	}
 
-	// Filter paths by shortest length and unique rooms
-	shortestPaths := [][]string{}
-	for _, path := range allPaths {
-		if len(path) == shortestLength && hasUniqueRooms(path) {
-			shortestPaths = append(shortestPaths, path)
+	shortestPaths, usedRooms := [][]string{}, map[string]bool{}
+	for _, path := range paths {
+		if len(path) == shortestLength {
+			unique := true
+			for _, room := range path[1 : len(path)-1] {
+				if usedRooms[room] {
+					unique = false
+					break
+				}
+			}
+			if unique {
+				shortestPaths = append(shortestPaths, path)
+				for _, room := range path[1 : len(path)-1] {
+					usedRooms[room] = true
+				}
+			}
 		}
 	}
-
-	return shortestPaths, nil
-}
-
-// Helper function to check if a path contains unique rooms
-func hasUniqueRooms(path []string) bool {
-	roomSet := make(map[string]bool)
-	for _, room := range path {
-		if roomSet[room] {
-			return false // Room already exists in path, so it's not unique
-		}
-		roomSet[room] = true
-	}
-	return true
+	return shortestPaths
 }
