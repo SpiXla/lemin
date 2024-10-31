@@ -158,7 +158,6 @@ func parseTunnel(line string, connections map[string][]string) error {
 
 	return nil
 }
-
 func findAllPaths(rooms map[string]*Room, connections map[string][]string) ([][]string, error) {
 	var startRoom, endRoom *Room
 
@@ -178,6 +177,7 @@ func findAllPaths(rooms map[string]*Room, connections map[string][]string) ([][]
 	allPaths := [][]string{}
 	visited := make(map[string]bool)
 
+	// Depth-first search to find all paths
 	var dfs func(current string, path []string)
 	dfs = func(current string, path []string) {
 		path = append(path, current)
@@ -200,5 +200,34 @@ func findAllPaths(rooms map[string]*Room, connections map[string][]string) ([][]
 	}
 
 	dfs(startRoom.Name, []string{})
-	return allPaths, nil
+
+	// Determine the shortest path length
+	shortestLength := len(allPaths[0])
+	for _, path := range allPaths {
+		if len(path) < shortestLength {
+			shortestLength = len(path)
+		}
+	}
+
+	// Filter paths by shortest length and unique rooms
+	shortestPaths := [][]string{}
+	for _, path := range allPaths {
+		if len(path) == shortestLength && hasUniqueRooms(path) {
+			shortestPaths = append(shortestPaths, path)
+		}
+	}
+
+	return shortestPaths, nil
+}
+
+// Helper function to check if a path contains unique rooms
+func hasUniqueRooms(path []string) bool {
+	roomSet := make(map[string]bool)
+	for _, room := range path {
+		if roomSet[room] {
+			return false // Room already exists in path, so it's not unique
+		}
+		roomSet[room] = true
+	}
+	return true
 }
