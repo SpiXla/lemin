@@ -73,7 +73,7 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 	connections := make(map[string][]string)
 	var numAnts int
 	parsingRooms, isStart, isEnd := true, false, false
-
+	foundstart, foundend := false,false
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {
@@ -83,10 +83,14 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 				return 0, nil, nil, fmt.Errorf("invalid number of ants: %v", err)
 			}
 		case strings.HasPrefix(line, "#"):
-			if line == "##end" {
+			if line == "##end" && !foundstart {
+				foundstart = true
 				isEnd = true
-			} else if line == "##start" {
+			} else if line == "##start" && !foundend {
+				foundend = true
 				isStart = true
+			}else {
+				return 0, nil, nil, errors.New("you cant choose multiple starts or ends")
 			}
 		case parsingRooms && strings.Contains(line, "-"):
 			parsingRooms = false
