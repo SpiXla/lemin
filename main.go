@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,9 +11,12 @@ import (
 
 type Room struct {
 	Name    string
+	X, Y    string
 	IsStart bool
 	IsEnd   bool
 }
+var seencor = make(map[string]bool)
+var seename = make(map[string]bool)
 
 func main() {
 	if len(os.Args) < 2 {
@@ -28,7 +32,7 @@ func main() {
 
 	fmt.Printf("Number of ants: %d\n", numAnts)
 	for name, room := range rooms {
-		fmt.Printf("Room: %s %s\n", name, roomStatus(room))
+		fmt.Printf("Room: %s coordonates: %s, %s %s\n", name, room.X, room.Y, roomStatus(room))
 	}
 	for room, links := range connections {
 		fmt.Printf("Room %s: %v\n", room, links)
@@ -73,18 +77,26 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {
-		case strings.HasPrefix(line, "#"):
-			isStart, isEnd = line == "##start", line == "##end"
 		case numAnts == 0:
 			numAnts, err = strconv.Atoi(line)
 			if err != nil {
 				return 0, nil, nil, fmt.Errorf("invalid number of ants: %v", err)
 			}
+		case strings.HasPrefix(line, "#"):
+			if line == "##end" {
+				isEnd = true
+			} else if line == "##start" {
+				isStart = true
+			}
 		case parsingRooms && strings.Contains(line, "-"):
 			parsingRooms = false
 			parseTunnel(line, connections)
 		case parsingRooms:
-			room := &Room{Name: strings.Fields(line)[0], IsStart: isStart, IsEnd: isEnd}
+			name, x, y, err := RoomParams(line)
+			if err != nil {
+				return 0, nil, nil, err
+			}
+			room := &Room{Name: name, X: x, Y: y, IsStart: isStart, IsEnd: isEnd}
 			rooms[room.Name] = room
 			isStart, isEnd = false, false
 		default:
@@ -93,6 +105,28 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 	}
 
 	return numAnts, rooms, connections, nil
+}
+
+func RoomParams(line string) (string, string, string, error) {
+	info := strings.Fields(line)
+	if len(info) != 3 {
+		return "", "", "", errors.New("wrong room data")
+	}
+	name := info[0]
+	if seename[name] {
+		return "", "", "", errors.New("wrong name")
+	} else if !seename[name] {
+		seename[name] = true
+	}
+	coor := strings.Join(info[1:], " ")
+	if seencor[coor] {
+		return "", "", "", errors.New("wrong coordinates")
+	} else if !seencor[coor] {
+		seencor[coor] = true
+	}
+	x := info[1]
+	y := info[2]
+	return name, x, y, nil
 }
 
 func parseTunnel(line string, connections map[string][]string) {
