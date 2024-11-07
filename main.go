@@ -15,8 +15,13 @@ type Room struct {
 	IsStart bool
 	IsEnd   bool
 }
-var seencor = make(map[string]bool)
-var seename = make(map[string]bool)
+
+var (
+	seencor = make(map[string]bool)
+	seename = make(map[string]bool)
+)
+
+var linkstart,linkend = false,false
 
 func main() {
 	if len(os.Args) < 2 {
@@ -27,6 +32,18 @@ func main() {
 	numAnts, rooms, connections, err := parseInput(os.Args[1])
 	if err != nil {
 		fmt.Println("Error:", err)
+		return
+	}
+	start, end := findStartEnd(rooms)
+	for a := range connections {
+		if a == start {
+			linkstart = true
+		}else if a == end {
+			linkend = true
+		}
+	}
+	if !linkend|| !linkstart {
+		fmt.Println("start or end isnt linked")
 		return
 	}
 
@@ -72,15 +89,18 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 	rooms := make(map[string]*Room)
 	connections := make(map[string][]string)
 	var numAnts int
+	// var start, end string
 	parsingRooms, isStart, isEnd := true, false, false
-	foundstart, foundend := false,false
+	foundstart, foundend := false, false
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {
+		case line == "":
+			return 0, nil, nil, errors.New("invalid data (empty lines)")
 		case numAnts == 0:
 			numAnts, err = strconv.Atoi(line)
 			if err != nil {
-				return 0, nil, nil, fmt.Errorf("invalid number of ants: %v", err)
+				return 0, nil, nil, errors.New("invalid number of ants")
 			}
 		case strings.HasPrefix(line, "#"):
 			if line == "##end" && !foundstart {
@@ -89,8 +109,8 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 			} else if line == "##start" && !foundend {
 				foundend = true
 				isStart = true
-			}else {
-				return 0, nil, nil, errors.New("you cant choose multiple starts or ends")
+			} else {
+				return 0, nil, nil, errors.New("invalid start or end")
 			}
 		case parsingRooms && strings.Contains(line, "-"):
 			parsingRooms = false
