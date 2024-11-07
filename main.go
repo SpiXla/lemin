@@ -21,7 +21,7 @@ var (
 	seename = make(map[string]bool)
 )
 
-var linkstart,linkend = false,false
+var linkstart, linkend = false, false
 
 func main() {
 	if len(os.Args) < 2 {
@@ -38,22 +38,16 @@ func main() {
 	for a := range connections {
 		if a == start {
 			linkstart = true
-		}else if a == end {
+		} else if a == end {
 			linkend = true
 		}
 	}
-	if !linkend|| !linkstart {
+	if !linkend || !linkstart {
 		fmt.Println("start or end isnt linked")
 		return
 	}
 
 	fmt.Printf("Number of ants: %d\n", numAnts)
-	for name, room := range rooms {
-		fmt.Printf("Room: %s coordonates: %s, %s %s\n", name, room.X, room.Y, roomStatus(room))
-	}
-	for room, links := range connections {
-		fmt.Printf("Room %s: %v\n", room, links)
-	}
 
 	paths, err := findUniquePaths(rooms, connections)
 	if err != nil {
@@ -64,17 +58,6 @@ func main() {
 	fmt.Println("All unique paths from start to end:")
 	for _, path := range paths {
 		fmt.Println(path)
-	}
-}
-
-func roomStatus(room *Room) string {
-	switch {
-	case room.IsStart:
-		return "(Start)"
-	case room.IsEnd:
-		return "(End)"
-	default:
-		return ""
 	}
 }
 
@@ -115,6 +98,8 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 		case parsingRooms && strings.Contains(line, "-"):
 			parsingRooms = false
 			parseTunnel(line, connections)
+		case !parsingRooms && !strings.Contains(line, "-"):
+			return 0, nil, nil, errors.New("invalid links")
 		case parsingRooms:
 			name, x, y, err := RoomParams(line)
 			if err != nil {
@@ -124,7 +109,10 @@ func parseInput(filename string) (int, map[string]*Room, map[string][]string, er
 			rooms[room.Name] = room
 			isStart, isEnd = false, false
 		default:
-			parseTunnel(line, connections)
+			err := parseTunnel(line, connections)
+			if err != nil {
+				return 0, nil, nil, err
+			}
 		}
 	}
 
@@ -153,10 +141,17 @@ func RoomParams(line string) (string, string, string, error) {
 	return name, x, y, nil
 }
 
-func parseTunnel(line string, connections map[string][]string) {
+func parseTunnel(line string, connections map[string][]string) error {
+	if len(line) != 3 {
+		return errors.New("invalid links")
+	}
 	parts := strings.Split(line, "-")
+	if parts[0] == parts[1] {
+		return errors.New("invalid links")
+	}
 	connections[parts[0]] = append(connections[parts[0]], parts[1])
 	connections[parts[1]] = append(connections[parts[1]], parts[0])
+	return nil
 }
 
 func findUniquePaths(rooms map[string]*Room, connections map[string][]string) ([][]string, error) {
