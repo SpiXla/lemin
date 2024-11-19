@@ -1,5 +1,5 @@
 #!/bin/bash
-#///////////////
+#///////////////////
 
 desired_branch="main"
 username="SpiXla"
