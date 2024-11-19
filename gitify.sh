@@ -1,7 +1,7 @@
 #!/bin/bash
 #/////////////
 
-desired_branch="main"
+desired_branch="master"
 username="SpiXla"
 email="aymanaitbihi9@gmail.com"
 github_repo="https://github.com/SpiXla/lemin.git"
