@@ -6,7 +6,6 @@ import (
 
 	input "lemin/Input"
 	"lemin/functions"
-	"lemin/movement"
 )
 
 var linkstart, linkend = false, false
@@ -30,7 +29,7 @@ func main() {
 			linkend = true
 		}
 	}
-	
+
 	if !linkend || !linkstart {
 		fmt.Println("start or end isnt linked")
 		return
@@ -51,4 +50,3 @@ func main() {
 
 	// movement.Antmovement(numAnts, paths)
 }
-
