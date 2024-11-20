@@ -49,6 +49,6 @@ func main() {
 		fmt.Println(path)
 	}
 
-	movement.Antmovement(numAnts, start, end, paths)
+	// movement.Antmovement(numAnts, paths)
 }
 
