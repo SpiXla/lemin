@@ -33,7 +33,7 @@ func ParseInput(filename string) (int, map[string]*Room, map[string][]string, er
 	rooms := make(map[string]*Room)
 	connections := make(map[string][]string)
 	var numAnts int
-	// var start, end string
+
 	parsingRooms, isStart, isEnd := true, false, false
 	foundstart, foundend := false, false
 	for scanner.Scan() {

@@ -33,6 +33,7 @@ func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]stri
 	return filterUniquePaths(paths), nil
 }
 
+
 func FindStartEnd(rooms map[string]*input.Room) (string, string) {
 	var start, end string
 	for name, room := range rooms {

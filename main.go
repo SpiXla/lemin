@@ -17,6 +17,7 @@ func main() {
 	}
 
 	numAnts, rooms, connections, err := input.ParseInput(os.Args[1])
+	_ = numAnts
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -34,16 +35,12 @@ func main() {
 		fmt.Println("start or end isnt linked")
 		return
 	}
-
-	fmt.Printf("Number of ants: %d\n", numAnts)
-
 	paths, err := functions.FindUniquePaths(rooms, connections)
 	if err != nil {
 		fmt.Println("Error finding paths:", err)
 		return
 	}
 
-	fmt.Println("All unique paths from start to end:")
 	for _, path := range paths {
 		fmt.Println(path)
 	}
