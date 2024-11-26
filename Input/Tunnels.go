@@ -6,8 +6,11 @@ import (
 )
 
 func parseTunnel(line string, connections map[string][]string) error {
-
-	parts := strings.Split(line, "-")
+	str := strings.Trim(line," ")
+	if strings.Contains(str," ") {
+		return errors.New("invalid links")
+	}
+	parts := strings.Split(str, "-")
 	if len(parts) != 2 {
 		return errors.New("invalid links")
 	}
