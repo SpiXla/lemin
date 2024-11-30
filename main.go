@@ -6,9 +6,19 @@ import (
 
 	input "lemin/Input"
 	"lemin/functions"
+	movement "lemin/movement"
 )
 
 var linkstart, linkend = false, false
+
+
+func GetLargestLenOfResult(res1 [][]string, res2 [][]string) [][]string {
+
+	if len(res1) < len(res2) {
+		return res1
+	}
+	return res2
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -17,7 +27,6 @@ func main() {
 	}
 
 	numAnts, rooms, connections, err := input.ParseInput(os.Args[1])
-	_ = numAnts
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -35,15 +44,13 @@ func main() {
 		fmt.Println("start or end isnt linked")
 		return
 	}
-	paths, err := functions.FindUniquePaths(rooms, connections)
+	paths1, paths2, err := functions.FindUniquePaths(rooms, connections)
 	if err != nil {
 		fmt.Println("Error finding paths:", err)
 		return
 	}
 
-	for _, path := range paths {
-		fmt.Println(path)
-	}
-
-	// movement.Antmovement(numAnts, paths)
+	result1 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths1, numAnts), movement.RemoveStartRoom(paths1)))
+	result2 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths2, numAnts), movement.RemoveStartRoom(paths2)))
+	fmt.Println(movement.JoinStepsWithNewLine(GetLargestLenOfResult(result1, result2)))
 }

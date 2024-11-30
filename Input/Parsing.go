@@ -36,6 +36,8 @@ func ParseInput(filename string) (int, map[string]*Room, map[string][]string, er
 
 	parsingRooms, isStart, isEnd := true, false, false
 	foundstart, foundend := false, false
+
+	
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {

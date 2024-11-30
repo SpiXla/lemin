@@ -1,20 +1,22 @@
 package functions
 
-
 import (
 	"fmt"
+
+
 	input "lemin/Input"
 )
 
-func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]string) ([][]string, error) {
+func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]string) ([][]string, [][]string, error) {
 	start, end := FindStartEnd(rooms)
 	if start == "" || end == "" {
-		return nil, fmt.Errorf("start or end room not defined")
+		return nil, nil, fmt.Errorf("start or end room not defined")
 	}
 
 	var paths [][]string
 	visited := map[string]bool{}
 	var dfs func(path []string)
+	
 	dfs = func(path []string) {
 		room := path[len(path)-1]
 		if room == end {
@@ -30,9 +32,8 @@ func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]stri
 		visited[room] = false
 	}
 	dfs([]string{start})
-	return filterUniquePaths(paths), nil
+	return filterUniquePaths(paths, true), filterUniquePaths(paths, false), nil
 }
-
 
 func FindStartEnd(rooms map[string]*input.Room) (string, string) {
 	var start, end string
