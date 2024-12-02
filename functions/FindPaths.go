@@ -1,16 +1,14 @@
 package functions
 
 import (
-	"fmt"
-
-
+	"errors"
 	input "lemin/Input"
 )
 
 func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]string) ([][]string, [][]string, error) {
 	start, end := FindStartEnd(rooms)
 	if start == "" || end == "" {
-		return nil, nil, fmt.Errorf("start or end room not defined")
+		return nil, nil, errors.New("start or end room not defined")
 	}
 
 	var paths [][]string
@@ -32,6 +30,9 @@ func FindUniquePaths(rooms map[string]*input.Room, connections map[string][]stri
 		visited[room] = false
 	}
 	dfs([]string{start})
+	if len(paths) == 0 {
+		return nil, nil, errors.New("invalid data format, no path found.")
+	}
 	return filterUniquePaths(paths, true), filterUniquePaths(paths, false), nil
 }
 

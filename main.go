@@ -22,12 +22,7 @@ func main() {
 	}
 	paths1, paths2, err := functions.FindUniquePaths(rooms, connections)
 	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
-
-	if len(paths1) == 0 {
-		fmt.Println("Error: invalid data format, no paths found")
+		fmt.Println("Error:", err)
 		return
 	}
 	fmt.Println(fileContent)
