@@ -6,11 +6,12 @@ import (
 	"strings"
 )
 
+var (
+	seencor = make(map[string]bool)
+	seename = make(map[string]bool)
+)
+
 func RoomParams(line string) (string, int, int, error) {
-	var (
-		seencor = make(map[string]bool)
-		seename = make(map[string]bool)
-	)
 	info := strings.Fields(line)
 	if len(info) != 3 {
 		return "", 0, 0, errors.New("invalid data format, wrong room data")
@@ -21,6 +22,7 @@ func RoomParams(line string) (string, int, int, error) {
 	} else if !seename[name] {
 		seename[name] = true
 	}
+
 	coor := strings.Join(info[1:], " ")
 	if seencor[coor] {
 		return "", 0, 0, errors.New("invalid data format, wrong coordinates")

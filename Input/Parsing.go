@@ -16,7 +16,21 @@ type Room struct {
 	IsEnd   bool
 }
 
-func ParseInput(filename string) (string, int, map[string]*Room, map[string][]string, error) {
+type SHelpVaraibles struct {
+	Line         string
+	Foundstart   bool
+	Foundend     bool
+	ParsingRooms bool
+	Name         string
+	X, Y         int
+	IsStart      bool
+	IsEnd        bool
+	Err          error
+}
+
+func ParseInput(filename string) (string, int, map[string]Room, map[string][]string, error) {
+	var Tools SHelpVaraibles
+
 	file, err := os.Open(filename)
 	if err != nil {
 		return "", 0, nil, nil, fmt.Errorf("could not open file %s", filename)
@@ -25,58 +39,73 @@ func ParseInput(filename string) (string, int, map[string]*Room, map[string][]st
 
 	scanner := bufio.NewScanner(file)
 	fileContent := ""
-	rooms := make(map[string]*Room)
+	rooms := make(map[string]Room)
+
 	connections := make(map[string][]string)
 	var numAnts int
 
-	parsingRooms, isStart, isEnd := true, false, false
-	foundstart, foundend := false, false
+	Tools.ParsingRooms, Tools.IsStart, Tools.IsEnd = true, false, false
+	Tools.Foundstart, Tools.Foundend = false, false
 
 	for scanner.Scan() {
-		line := scanner.Text()
-		fileContent += line + "\n"
-		switch {
-		case line == "":
+		Tools.Line = scanner.Text()
+		if Tools.Line == "" {
 			continue
+		}
+
+		fileContent += Tools.Line + "\n"
+		switch {
+
 		case numAnts == 0:
-			numAnts, err = strconv.Atoi(line)
-			if err != nil {
-				return "", 0, nil, nil, errors.New("invalid data format, invalid number of ants")
+			numAnts, err = strconv.Atoi(Tools.Line)
+			if err != nil || numAnts < 0 {
+				return "", 0, nil, nil, errors.New("invalid data format, wrong number of ants")
 			}
-		case strings.HasPrefix(line, "#"):
-			if line == "##end" && !foundstart {
-				foundstart = true
-				isEnd = true
-			} else if line == "##start" && !foundend {
-				foundend = true
-				isStart = true
-			} else if line != "##end" && line != "##start" && len(strings.Fields(line)) != 3{
+		case strings.HasPrefix(Tools.Line, "#"):
+			
+			if err := CommentHandler(&Tools); err == nil {
 				continue
-			} else if len(strings.Fields(line)) == 3 {
-				return "", 0, nil, nil, errors.New("invalid data format, invalid room name")
-			} else {
-				return "", 0, nil, nil, errors.New("invalid data format, invalid start or end room")
 			}
-		case parsingRooms && strings.Contains(line, "-"):
-			parsingRooms = false
-			parseTunnel(line, connections)
-		case !parsingRooms && !strings.Contains(line, "-"):
+			
+		case Tools.ParsingRooms && strings.Contains(Tools.Line, "-"):
+			Tools.ParsingRooms = false
+			parseTunnel(Tools.Line, connections)
+
+		case !Tools.ParsingRooms && !strings.Contains(Tools.Line, "-"):
 			return "", 0, nil, nil, errors.New("invalid data format, invalid links")
-		case parsingRooms:
-			name, x, y, err := RoomParams(line)
+
+		case Tools.ParsingRooms:
+			
+			Tools.Name, Tools.X, Tools.Y, Tools.Err = RoomParams(Tools.Line)
 			if err != nil {
 				return "", 0, nil, nil, err
 			}
-			room := &Room{Name: name, X: x, Y: y, IsStart: isStart, IsEnd: isEnd}
-			rooms[room.Name] = room
-			isStart, isEnd = false, false
+			room := &Room{Name: Tools.Name, X: Tools.X, Y: Tools.Y, IsStart: Tools.IsStart, IsEnd: Tools.IsEnd}
+			rooms[room.Name] = *room
+			Tools.IsStart, Tools.IsEnd = false, false
+			
 		default:
-			err := parseTunnel(line, connections)
+			err := parseTunnel(Tools.Line, connections)
 			if err != nil {
 				return "", 0, nil, nil, err
 			}
 		}
 	}
-
 	return fileContent, numAnts, rooms, connections, nil
+}
+
+func CommentHandler(Tools *SHelpVaraibles) error {
+	
+	if Tools.Line == "##end" && !Tools.Foundstart {
+		Tools.Foundstart = true
+		Tools.IsEnd = true
+	} else if Tools.Line == "##start" && !Tools.Foundend {
+		Tools.Foundend = true
+		Tools.IsStart = true
+	} else if Tools.Line != "##end" && Tools.Line != "##start" && len(strings.Fields(Tools.Line)) != 3 {
+		return nil
+	} else if len(strings.Fields(Tools.Line)) == 3 {
+		return errors.New("invalid data format, invalid room name")
+	}
+	return errors.New("invalid data format, invalid start or end room")
 }

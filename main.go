@@ -20,11 +20,14 @@ func main() {
 		fmt.Println("Error:", err)
 		return
 	}
+
 	paths1, paths2, err := functions.FindUniquePaths(rooms, connections)
+
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+	
 	fmt.Println(fileContent)
 	result1 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths1, numAnts), movement.RemoveStartRoom(paths1)))
 	result2 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths2, numAnts), movement.RemoveStartRoom(paths2)))
