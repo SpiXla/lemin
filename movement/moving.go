@@ -77,3 +77,11 @@ func JoinStepsWithNewLine(mergedSteps [][]string) string {
 
 	return strings.TrimSpace(result)
 }
+
+func GetBestResult(res1 [][]string, res2 [][]string) [][]string {
+
+	if len(res1) < len(res2) {
+		return res1
+	}
+	return res2
+}

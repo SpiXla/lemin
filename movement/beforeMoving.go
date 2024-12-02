@@ -31,5 +31,3 @@ func BeforeMoving(paths [][]string, NumberOfAnts int) map[int][]string {
 	return antsSelection
 }
 
-
-
