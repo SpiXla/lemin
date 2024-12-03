@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 
-	paths1, paths2, err := functions.FindUniquePaths(rooms, connections)
+	pathsOne, pathsTwo, err := functions.FindUniquePaths(rooms, connections)
 
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -29,7 +29,9 @@ func main() {
 	}
 	
 	fmt.Println(fileContent)
-	result1 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths1, numAnts), movement.RemoveStartRoom(paths1)))
-	result2 := movement.MergeSteps(movement.GenerateSteps(movement.BeforeMoving(paths2, numAnts), movement.RemoveStartRoom(paths2)))
-	fmt.Println(movement.JoinStepsWithNewLine(movement.GetBestResult(result1, result2)))
+
+	ResultOneOfTurns := movement.MergeTurnsOfPaths(movement.GenerateStepsOfAnts(movement.BeforeMovingAntsInPaths(pathsOne, numAnts), movement.RemoveStartRoom(pathsOne)))
+	ResultTwoOfTurns := movement.MergeTurnsOfPaths(movement.GenerateStepsOfAnts(movement.BeforeMovingAntsInPaths(pathsTwo, numAnts), movement.RemoveStartRoom(pathsTwo)))
+
+	fmt.Println(movement.JoinStepsWithNewLine(movement.GetBestResult(ResultOneOfTurns, ResultTwoOfTurns)))
 }

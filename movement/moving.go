@@ -4,13 +4,15 @@ import (
 	"strings"
 )
 
-func GenerateSteps(antPaths map[int][]string, validPaths [][]string) [][][]string {
-	result := make([][][]string, len(validPaths))
+func GenerateStepsOfAnts(AllPathsWithAnts map[int][]string, AllPathsWithoutRoomStart [][]string) [][][]string {
 
-	for pathIdx, path := range validPaths {
+	result := make([][][]string, len(AllPathsWithoutRoomStart))
+
+	for pathIdx, path := range AllPathsWithoutRoomStart {
+
 		steps := [][]string{}
 
-		ants := antPaths[pathIdx]
+		ants := AllPathsWithAnts[pathIdx]
 
 		for stepIdx := 0; stepIdx < len(path)+len(ants)-1; stepIdx++ {
 			step := []string{}
@@ -34,11 +36,12 @@ func GenerateSteps(antPaths map[int][]string, validPaths [][]string) [][][]strin
 	return result
 }
 
-func MergeSteps(steps [][][]string) [][]string {
-	var merged [][]string
+func MergeTurnsOfPaths(StepsOfAnts [][][]string) [][]string {
+
+	var result [][]string
 
 	maxSteps := 0
-	for _, pathSteps := range steps {
+	for _, pathSteps := range StepsOfAnts {
 		if len(pathSteps) > maxSteps {
 			maxSteps = len(pathSteps)
 		}
@@ -47,41 +50,42 @@ func MergeSteps(steps [][][]string) [][]string {
 	for stepIdx := 0; stepIdx < maxSteps; stepIdx++ {
 		mergedStep := []string{}
 
-		for _, pathSteps := range steps {
+		for _, pathSteps := range StepsOfAnts {
 			if stepIdx < len(pathSteps) {
 				mergedStep = append(mergedStep, pathSteps[stepIdx]...)
 			}
 		}
 
-		merged = append(merged, mergedStep)
+		result = append(result, mergedStep)
 	}
 
-	return merged
+	return result
 }
 
-func RemoveStartRoom(paths [][]string) [][]string {
-	for i, v := range paths {
-		v = v[1:]
-		paths[i] = v
+func RemoveStartRoom(Paths [][]string) [][]string {
+
+	for index, value := range Paths {
+		value = value[1:]
+		Paths[index] = value
 	}
-	return paths
+	return Paths
 }
 
-func JoinStepsWithNewLine(mergedSteps [][]string) string {
+func JoinStepsWithNewLine(mergedStepsOfAnts [][]string) string {
+
 	var result string
+	for _, step := range mergedStepsOfAnts {
 
-	for _, step := range mergedSteps {
 		stepStr := strings.Join(step, " ")
 		result += stepStr + "\n"
 	}
-
 	return strings.TrimSpace(result)
 }
 
-func GetBestResult(res1 [][]string, res2 [][]string) [][]string {
+func GetBestResult(ResultOneOfTurns [][]string, ResultTwoOfTurns [][]string) [][]string {
 
-	if len(res1) < len(res2) {
-		return res1
+	if len(ResultOneOfTurns) < len(ResultTwoOfTurns) {
+		return ResultOneOfTurns
 	}
-	return res2
+	return ResultTwoOfTurns
 }

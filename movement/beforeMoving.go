@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-func BeforeMoving(paths [][]string, NumberOfAnts int) map[int][]string {
+func BeforeMovingAntsInPaths(paths [][]string, NumberOfAnts int) map[int][]string {
 
 	indexOfCurentPath := 0
 	antsSelection := make(map[int][]string, len(paths))
@@ -13,6 +13,7 @@ func BeforeMoving(paths [][]string, NumberOfAnts int) map[int][]string {
 
 		if indexOfCurentPath == len(paths)-1 {
 			indexOfCurentPath = 0
+
 		} else if i != 1 {
 			if len(antsSelection[indexOfCurentPath])+len(paths[indexOfCurentPath]) > len(antsSelection[indexOfCurentPath+1])+len(paths[indexOfCurentPath+1]) {
 				indexOfCurentPath += 1
