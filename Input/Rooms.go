@@ -24,6 +24,7 @@ func RoomParams(line string) (string, int, int, error) {
 	}
 
 	coor := strings.Join(info[1:], " ")
+
 	if seencor[coor] {
 		return "", 0, 0, errors.New("invalid data format, wrong coordinates")
 	} else if !seencor[coor] {

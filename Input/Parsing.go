@@ -77,8 +77,8 @@ func ParseInput(filename string) (string, int, map[string]Room, map[string][]str
 		case Tools.ParsingRooms:
 			
 			Tools.Name, Tools.X, Tools.Y, Tools.Err = RoomParams(Tools.Line)
-			if err != nil {
-				return "", 0, nil, nil, err
+			if Tools.Err != nil {
+				return "", 0, nil, nil, Tools.Err
 			}
 			room := &Room{Name: Tools.Name, X: Tools.X, Y: Tools.Y, IsStart: Tools.IsStart, IsEnd: Tools.IsEnd}
 			rooms[room.Name] = *room
@@ -97,10 +97,8 @@ func ParseInput(filename string) (string, int, map[string]Room, map[string][]str
 func CommentHandler(Tools *SHelpVaraibles) error {
 	
 	if Tools.Line == "##end" && !Tools.Foundstart {
-		Tools.Foundstart = true
 		Tools.IsEnd = true
 	} else if Tools.Line == "##start" && !Tools.Foundend {
-		Tools.Foundend = true
 		Tools.IsStart = true
 	} else if Tools.Line != "##end" && Tools.Line != "##start" && len(strings.Fields(Tools.Line)) != 3 {
 		return nil
