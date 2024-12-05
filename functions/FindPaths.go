@@ -7,38 +7,28 @@ import (
     input "lemin/Input"
 )
 
-func GetNumberOfConnections(connections map[string][]string) int {
-    var Counter int
-    for _, value := range connections {
-        Counter += len(value)
-    }
-    return Counter
-}
 
 func FindUniquePaths(rooms map[string]input.Room, connections map[string][]string) ([][]string, error) {
     start, end := FindStartEnd(rooms)
-    var paths [][]string
+    // var paths [][]string
     visited := map[string]bool{}
 
     if start == "" || end == "" {
         return nil, errors.New("start or end room not defined")
     }
 
-    if Num := GetNumberOfConnections(connections); Num > 200 {
-        return nil, errors.New("unsupported graph")
-    }
 
     shortestPath := [][]string{}
 
     // DepthFirstSearch([]string{start}, start, end, &paths, visited, connections)
-    ConnWithoutStart := RemoveStart(&paths, connections, start)
+    ConnWithoutStart := RemoveStart(connections, start)
     fmt.Println(connections[start])
     for _, StartConnection := range connections[start] {
         path := BFS(ConnWithoutStart, StartConnection, end)
         shortestPath = append(shortestPath, path)
     }
-    SortedPaths := SortPaths(shortestPath)
-    for _, path := range SortedPaths {
+    SortPaths(&shortestPath)
+    for _, path := range shortestPath {
         p := path[:len(path)-1]
         for i, room := range p {
             if !visited[room] {
@@ -54,8 +44,8 @@ func FindUniquePaths(rooms map[string]input.Room, connections map[string][]strin
             }
         }
     }
-    SortedPaths = SortPaths(shortestPath)
-    fmt.Println(SortedPaths)
+
+    SortPaths(&shortestPath)
 
     return shortestPath, nil
 }
@@ -104,10 +94,10 @@ func BFS(graph map[string][]string, start, end string) []string {
     return nil
 }
 
-func RemoveStart(paths *[][]string, connections map[string][]string, start string) map[string][]string {
-    for i, path := range *paths {
-        (*paths)[i] = path[1:]
-    }
+func RemoveStart(connections map[string][]string, start string) map[string][]string {
+    // for i, path := range *paths {
+    //     (*paths)[i] = path[1:]
+    // }
 
     for key, value := range connections {
         if key == start {

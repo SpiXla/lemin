@@ -26,7 +26,16 @@ func main() {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println(pathsOne)
+	start ,_ := functions.FindStartEnd(rooms)
+	PathsWrooms := [][]string{}
+	for _,r := range pathsOne {
+		path := []string{}
+		path = append(path, start)
+		path = append(path, r...)
+		PathsWrooms = append(PathsWrooms, path)
+	}
+	fmt.Println(PathsWrooms)
+	fmt.Println()
 	fmt.Println(fileContent)
 
 	ResultOneOfTurns := movement.MergeTurnsOfPaths(movement.GenerateStepsOfAnts(movement.BeforeMovingAntsInPaths(pathsOne, numAnts), movement.RemoveStartRoom(pathsOne)))

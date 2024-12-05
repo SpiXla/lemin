@@ -33,13 +33,12 @@ package functions
 // 	return shortestPaths
 // }
 
-func SortPaths(paths [][]string) [][]string{
-	for i := 0; i < len(paths); i++ {
-		for j := i + 1; j < len(paths); j++ {
-			if len(paths[i]) > len(paths[j]) {
-				paths[i] ,  paths[j] =  paths[j] ,  paths[i]
+func SortPaths(paths *[][]string) {
+	for i := 0; i < len(*paths); i++ {
+		for j := i + 1; j < len(*paths); j++ {
+			if len((*paths)[i]) > len((*paths)[j]) {
+				(*paths)[i], (*paths)[j] = (*paths)[j], (*paths)[i]
 			}
 		}
 	}
-	return paths
 }
