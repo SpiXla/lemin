@@ -9,7 +9,7 @@ import (
 
 func FindUniquePaths(rooms map[string]input.Room, connections map[string][]string) ([][]string, error) {
 	start, end := FindStartEnd(rooms)
-	// var paths [][]string
+	// var paths [][]string 
 	visited := map[string]bool{}
 
 	if start == "" || end == "" {
