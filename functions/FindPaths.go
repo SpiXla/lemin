@@ -39,34 +39,69 @@ func FindUniquePaths(rooms map[string]input.Room, connections map[string][]strin
                     connections = RemoveConn(connections, roomBefore, room)
                     path := BFS(ConnWithoutStart, p[0], end)
                     shortestPath = append(shortestPath, path)
-
                 }
             }
         }
     }
 
     SortPaths(&shortestPath)
+    AllGroups := [][][]string{}
+    for _, path := range shortestPath {
+        Groups := GroupsPaths(path, connections[start],ConnWithoutStart, end)
+        AllGroups = append(AllGroups, Groups)
+        // fmt.Println(Groups)
+    }
+    for _, group := range AllGroups {
 
+        fmt.Println(group)
+    }
     return shortestPath, nil
 }
 
-func RemoveConn(connections map[string][]string, roomBefore, link string) map[string][]string {
-    fmt.Println(link,roomBefore)
-    links := []string{}
-    for _, r := range connections[roomBefore] {
-        if r != link {
-            links = append(links, r)
+func GroupsPaths(path, RoomsLinkedWstart []string, connWithoutStart map[string][]string, end string) [][]string {
+    localVisited := make(map[string]bool)
+    Groups := [][]string{}
+
+    for _, room := range path[1 : len(path)-1] {
+        localVisited[room] = true
+    }
+
+    for _, pathStart := range RoomsLinkedWstart {
+        if !localVisited[pathStart] {
+            group := BfsGroups(connWithoutStart, pathStart, end, localVisited)
+            if group != nil {
+                Groups = append(Groups, group)
+            }
         }
     }
-    connections[roomBefore] = links
-    rooms := []string{}
-    for _, r := range connections[link] {
-        if r != roomBefore {
-            rooms = append(rooms, r)
+
+    return Groups
+}
+
+
+func BfsGroups(graph map[string][]string, start, end string, visited map[string]bool) []string {
+    queue := [][]string{{start}}
+    localVisited := make(map[string]bool) 
+    localVisited[start] = true
+
+    for len(queue) > 0 {
+        path := queue[0]
+        queue = queue[1:]
+
+        node := path[len(path)-1]
+        if node == end {
+            return path
+        }
+        for _, neighbor := range graph[node] {
+            if !visited[neighbor] && !localVisited[neighbor] {
+                localVisited[neighbor] = true
+                newPath := append([]string{}, path...)
+                newPath = append(newPath, neighbor)
+                queue = append(queue, newPath)
+            }
         }
     }
-    connections[link] = rooms
-    return connections
+    return nil
 }
 
 func BFS(graph map[string][]string, start, end string) []string {
@@ -93,6 +128,27 @@ func BFS(graph map[string][]string, start, end string) []string {
     }
     return nil
 }
+
+func RemoveConn(connections map[string][]string, roomBefore, link string) map[string][]string {
+    fmt.Println(link,roomBefore)
+    links := []string{}
+    for _, r := range connections[roomBefore] {
+        if r != link {
+            links = append(links, r)
+        }
+    }
+    connections[roomBefore] = links
+    rooms := []string{}
+    for _, r := range connections[link] {
+        if r != roomBefore {
+            rooms = append(rooms, r)
+        }
+    }
+    connections[link] = rooms
+    return connections
+}
+
+
 
 func RemoveStart(connections map[string][]string, start string) map[string][]string {
     // for i, path := range *paths {
@@ -128,17 +184,3 @@ func FindStartEnd(rooms map[string]input.Room) (string, string) {
     return start, end
 }
 
-// func DepthFirstSearch(path []string, start, end string, paths *[][]string, visited map[string]bool, connections map[string][]string) {
-//     room := path[len(path)-1]
-
-//     if room == end {
-//         *paths = append(*paths, append([]string{}, path...))
-//     }
-//     visited[room] = true
-//     for _, neighbor := range connections[room] {
-//         if !visited[neighbor] {
-//             DepthFirstSearch(append(path, neighbor), start, end, paths, visited, connections)
-//         }
-//     }
-//     visited[room] = false
-// }
