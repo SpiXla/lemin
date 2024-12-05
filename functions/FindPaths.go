@@ -56,9 +56,8 @@ func FindUniquePaths(rooms map[string]input.Room, connections map[string][]strin
     }
     SortedPaths = SortPaths(shortestPath)
     fmt.Println(SortedPaths)
-    // spaths := SortPaths(paths)
 
-    return paths, nil
+    return shortestPath, nil
 }
 
 func RemoveConn(connections map[string][]string, roomBefore, link string) map[string][]string {
