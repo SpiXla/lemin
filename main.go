@@ -6,6 +6,7 @@ import (
 
 	input "lemin/Input"
 	"lemin/functions"
+	"lemin/movement"
 )
 
 func main() {
@@ -22,25 +23,35 @@ func main() {
 		return
 	}
 
-	pathsOne, err := functions.FindUniquePaths(rooms, connections)
+	paths, AllGroups, err := functions.FindUniquePaths(rooms, connections)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+	turnsOfgroups := [][][]string{}
+	for _, group := range AllGroups {
+		turnOfGroup := movement.MergeTurnsOfPaths(movement.GenerateStepsOfAnts(movement.BeforeMovingAntsInPaths(group, numAnts), group))
+		turnsOfgroups = append(turnsOfgroups, turnOfGroup)
+		// fmt.Println(group)
+	}
+	for _,r := range turnsOfgroups {
+		fmt.Println("tri9:")
+		fmt.Println(len(r))
+		fmt.Println()
+		fmt.Println(r)
+	}
+	// fmt.Println(turnsOfgroups)
 	start, _ := functions.FindStartEnd(rooms)
 	PathsWrooms := [][]string{}
-	for _, r := range pathsOne {
+	for _, p := range paths {
 		path := []string{}
 		path = append(path, start)
-		path = append(path, r...)
+		path = append(path, p...)
 		PathsWrooms = append(PathsWrooms, path)
 	}
 	fmt.Println(PathsWrooms)
 	// fmt.Println()
 	// fmt.Println(fileContent)
 
-	// ResultOneOfTurns := movement.MergeTurnsOfPaths(movement.GenerateStepsOfAnts(movement.BeforeMovingAntsInPaths(pathsOne, numAnts), movement.RemoveStartRoom(pathsOne)))
-
 	// fmt.Println(movement.JoinStepsWithNewLine(ResultOneOfTurns))
 }
-

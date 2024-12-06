@@ -7,13 +7,13 @@ import (
 	input "lemin/Input"
 )
 
-func FindUniquePaths(rooms map[string]input.Room, connections map[string][]string) ([][]string, error) {
+func FindUniquePaths(rooms map[string]input.Room, connections map[string][]string) ([][]string,[][][]string, error) {
 	start, end := FindStartEnd(rooms)
 	// var paths [][]string 
 	visited := map[string]bool{}
 
 	if start == "" || end == "" {
-		return nil, errors.New("start or end room not defined")
+		return nil,nil, errors.New("start or end room not defined")
 	}
 
 	shortestPath := [][]string{}
@@ -68,11 +68,8 @@ func FindUniquePaths(rooms map[string]input.Room, connections map[string][]strin
             }
         }
     }
-    
-	for _, group := range AllGroups {
-		fmt.Println(group)
-	}
-	return shortestPath, nil
+
+	return shortestPath,AllGroups, nil
 }
 
 func GroupsPaths(path, roomsLinkedWStart []string, connWithoutStart map[string][]string, end string) [][]string {
