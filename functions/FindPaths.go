@@ -20,7 +20,7 @@ func FindUniquePaths(rooms map[string]input.Room, connections map[string][]strin
 
 	// DepthFirstSearch([]string{start}, start, end, &paths, visited, connections)
 	ConnWithoutStart := RemoveStart(connections, start)
-	fmt.Println(connections[start])
+	// fmt.Println(connections[start])
 	for _, StartConnection := range connections[start] {
 		path := BFS(ConnWithoutStart, StartConnection, end)
 		shortestPath = append(shortestPath, path)
